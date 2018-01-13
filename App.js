@@ -11,47 +11,65 @@ import {
   Text,
   View
 } from 'react-native';
+import { Provider } from 'react-redux'
+import {
+  createStore,
+  applyMiddleware,
+  combineReducers,
+  compose
+} from 'redux'
+import thunkMiddleware from 'redux-thunk'
+import { createLogger } from 'redux-logger'
+import reducer from './app/reducers'
+import { StackNavigator, TabNavigator } from 'react-navigation'
 
-const instructions = Platform.select({
-  ios: 'Press Cmd+R to reload,\n' +
-    'Cmd+D or shake for dev menu',
-  android: 'Double tap R on your keyboard to reload,\n' +
-    'Shake or press menu button for dev menu',
-});
+import Home from './app/components/Home/Home'
+import Team from './app/components/Team'
+import Game from './app/components/Game'
+import IndividualPlayer from './app/components/Player/IndividualPlayer'
+
+
+const loggerMiddleware = createLogger({ predicate: () => __DEV__ })
+
+const configureStore = (initialState) => {
+  const enhancer = compose(
+    applyMiddleware(
+      thunkMiddleware,
+      loggerMiddleware
+    ))
+  return createStore(reducer, initialState, enhancer)
+}
+
+const store = configureStore({})
 
 export default class App extends Component<{}> {
+
   render() {
+
     return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit App.js
-        </Text>
-        <Text style={styles.instructions}>
-          {instructions}
-        </Text>
-      </View>
+      <Provider store={store}>
+        <NBAStack />
+      </Provider>
     );
   }
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+const NBAStack = StackNavigator({
+  Home: {
+    screen: Home,
+    navigationOptions: {
+      headerMode: 'none',
+      header: null//to remove toolbar
+    }
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
+  TeamStats: {
+    screen: Team
   },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
+  GameStats: {
+    screen: Game
   },
-});
+  IndividualPlayer: {
+    screen: IndividualPlayer
+  }
+
+})
